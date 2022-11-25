@@ -144,10 +144,181 @@ plot([sin, cos, f], -π, π)
 # ╔═╡ bad522a3-1728-4e59-b0a8-8e7e4616c04e
 md"""
 **Note:** Observe in the previous plotting call, we did not call the functions to be plotted, we simply used to their names to indicate we are using them as function objects. Hence the lack of ().
+
+### Plotting Vectors of Vectors or Functions
+
+Sounds confusing at first; however, for example the call *plot([x1,x2], [y1,y2])* will generate a plot of y1 vs x1 and y2 vs y2. Similarly, the call *plot(x1, [y1, y2]) will generate a plot of y1 vs x1 and y2 vs x2. It will simply recycle vectors as necessary. 
+
+Interestingly enough, the *plots()* call also accepts matrix notation, so horizontal concatenation. So, *plot([x1 x2], [y1 y2])* will also work. You can even mix the two, matrix and vector notation. Vertical concatenation also works to create longer vectors. 
+
+Check the examples below.
 """
 
-# ╔═╡ f902eed6-54bb-4b07-b066-5cd8a7a65c4f
+# ╔═╡ 5f453a86-2fdf-4a1a-8e3a-e883c12c6d83
+# generate a range
+a = 0:5π/1000:5π
 
+# ╔═╡ 69759d82-0074-46cb-98bc-bc95a1601ef8
+plot([a; 5π .+ a], [sin.(a); -exp.(-a .* 0.2) .* sin.(a)])
+
+# ╔═╡ e3419b9e-26b2-4ee4-9b14-2effb111830c
+md"""
+In the above example, the first argument takes the vector *a* and appends the values in it shifted by 5π. The second argument is similar in that it appends the values on the y-axis. In both cases, we've created a longer vector for each arguments. 
+
+Fun note, this can be the graph of an initially frictionless oscillation with damping applied at $x=5π$. 
+
+### Display and Mutation
+
+The plotting system, much like other plotting systems, maintains a current plot in the global namespace along with other settings and state related to the display of graphics allowing us to incrementally mutate the state and thus the graphic generated. 
+"""
+
+# ╔═╡ 24a7516f-00dc-4c4d-89ab-31b6162dd864
+# reproduce one of the graphics above using mutation
+# the plot!() call will maintain the domain established by plot()
+begin
+	plot(sin, -π, π)    # plot these three functions arbitrarily 
+	plot!(cos)    # add the cosine function to the graphic
+	plot!(f)    # add the user-defined function to the graphic
+end
+
+# ╔═╡ c61f56c4-1f04-4da0-8f9c-553d727bb399
+md"""
+Stated above, the *plot!()* call will mutate whatever plot object is in the current global space. However, if we supply it with an argument of a specific plot object, it will instead mutate that one.
+
+We can also pass multiple plot objects to the *plot()* call and it will automatically arrange them into a grid. This grid arrangement can have fine-grained control if the automatic arrangements aren't desired. 
+"""
+
+# ╔═╡ 262addc4-4c26-4143-a2b1-564e44e5810c
+# code chunk creates several plots and them combines them 
+# NOTE: remember in any other interactive environment to include ; at the 
+# end of the lines to suppress the output until the very end
+begin
+	parabola = plot( x -> x^2)    # create plot object with anon function
+	ps = plot(sin, 0, 2π)    # create a plot object on given domain
+	plot!(ps, cos)    # mutate the ps plot object by adding a cos curve
+
+	# generate multi-plot graphic explicitly by using all four plot object
+	# observe that no domain was specified, thus it used a default domain [-5,5]
+	# the first and last arguments are plot holding variables while the middle 
+	# two are direct plotting calls
+	plot(ps, plot(f), plot(s -> s^3), parabola)    
+end
+
+# ╔═╡ 6c25eb15-a7fc-4cc9-9a27-eecbb3495149
+md"""
+### Parametric Plots
+
+These type of plots are classified as 2D plots since both x and y depend on one independent variable called the parameter. 
+
+The signature for parametric plots is to pass in two functions into the *plot()* function. This first function is the x-dependence and the second is the y-dependence. A domain must be specified for these types of plots. 
+
+As a brief example,
+"""
+
+# ╔═╡ 845902bc-fbe6-4cd4-b0db-ccdffccba566
+# generate composite plot of parametric function
+begin
+	spiral = plot(r -> r*sin(r), r -> r*cos(r), 0, 8π)
+	circle = plot(sin, cos, 0, 2π)
+	plot(circle, spiral)
+end
+
+# ╔═╡ a1d23ca3-5e31-413e-97e1-ace14a19203d
+md"""
+### Polar Plots
+
+These gave me trouble back in my calculus days, but in this coordinate system we have that the independent variable is the angle from the horizontal axis and the dependent variable is the distance from the origin. 
+
+As an example,
+"""
+
+# ╔═╡ 5cc04141-ccc3-4184-8273-4281117a0410
+# generate a polar plot
+plot(0:8π/200:8π, t -> t; proj=:polar)
+
+# ╔═╡ 48be10e8-20d3-4155-bde0-31e510a81d0a
+md"""
+To understand the call, the first argument are the set of angles we want to map. The second argument is an anonymous function that maps the given angle to the distance from the origin. t is a dummy variable for this function. So in this case, the measure of the angle from the horizontal axis is equal to the distance from the origin. The last argument tells the plotting system to make a polar plot. 
+
+This briefly touches upon polar plots, simply refer to documentation or other resources if/when more information is needed on generating these types of plots. 
+
+### Scatter Plots
+
+The scatter() function works the same as the plot() function, except for the fact that it just creates a scatter plot instead of a continuous curve. 
+
+As an example, we will vizualize an iterated map (Look this up later to learn more). For now, just know that these type of mappings can be used to generate patterns with an unpredictable dependence on a parameter. 
+
+We'll use one that generates a gingerbread man. 
+"""
+
+# ╔═╡ 03168a5c-a83f-4fd6-84a8-bb7798dac9e2
+function ginger(x,y,a)
+	x2 = 1.0 - y + a*abs(x)
+	y2 = x
+	x2,y2
+end
+
+# ╔═╡ 36de6750-8754-42f3-a95b-599a79b88de7
+# create a sequence of values in x and y vectors and iterate 4k times
+begin
+	xvec = [20.0]; yvec = [9.0];
+	for i in 1:4000
+		x2, y2 = ginger(xvec[end], yvec[end], 1.76)
+		push!(xvec, x2)
+		push!(yvec, y2)
+	end
+end
+
+# ╔═╡ 865aaab5-e9fe-42b3-af78-8c9bcd137d83
+scatter(xvec, yvec, ms=0.5, legend = false)
+
+# ╔═╡ 519ff1c3-15c0-4185-b472-e33c9e591e82
+md"""
+## Optional and Keyword Arguments 
+
+These work pretty much the same as in Python or other languages that offer keyword arguments. 
+"""
+
+# ╔═╡ 108a464f-0c18-402b-9527-b7cc6714bc6f
+# define function with optional argument
+g(x, y=2) = x + y
+
+# ╔═╡ 3bfffa1a-349f-4787-8785-50940f4fb7f7
+g(4)
+
+# ╔═╡ a51d18eb-23ad-41f1-8139-d65ae79383ba
+g(4, 9)
+
+# ╔═╡ b1be31d5-b5d1-42ea-a455-dc69de3d33ec
+md"""
+To define a function with a keyword argument, we have to distinguish them using a semicolon.
+"""
+
+# ╔═╡ d3ba0d37-d6d2-4b37-b072-573998453b08
+# define function with keyword argument
+p(x; y=2) = x + y
+
+# ╔═╡ 2f63d31a-64cf-4295-b6f5-5673557e0fb8
+p(4)
+
+# ╔═╡ e8b97a97-2e6a-4675-9e27-48c3928c3819
+# ERROR - must use keyword
+p(4,5)
+
+# ╔═╡ 6d55df8b-2a7a-43b6-b018-552f77eb6251
+# fix the error
+p(4; y = 5)
+
+# ╔═╡ 9e2b22d3-96f9-43b8-88ad-ee98262bd733
+# also works with commas in function call for positional arguments
+p(4, y = 5)
+
+# ╔═╡ 8365cdea-0806-4de0-a6a0-0d029a13d310
+md"""
+## Basic Plot Settings
+
+This section gets into adjusting the appearance of ourp plots using keyword arguments that are built into the system. 
+"""
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -1169,6 +1340,30 @@ version = "1.4.1+0"
 # ╟─4c6f44a2-7cdb-4a67-a98c-e966c35239c8
 # ╠═d9b3b503-d478-4293-8a10-8d87b1746bcf
 # ╟─bad522a3-1728-4e59-b0a8-8e7e4616c04e
-# ╠═f902eed6-54bb-4b07-b066-5cd8a7a65c4f
+# ╠═5f453a86-2fdf-4a1a-8e3a-e883c12c6d83
+# ╠═69759d82-0074-46cb-98bc-bc95a1601ef8
+# ╟─e3419b9e-26b2-4ee4-9b14-2effb111830c
+# ╠═24a7516f-00dc-4c4d-89ab-31b6162dd864
+# ╟─c61f56c4-1f04-4da0-8f9c-553d727bb399
+# ╠═262addc4-4c26-4143-a2b1-564e44e5810c
+# ╟─6c25eb15-a7fc-4cc9-9a27-eecbb3495149
+# ╠═845902bc-fbe6-4cd4-b0db-ccdffccba566
+# ╟─a1d23ca3-5e31-413e-97e1-ace14a19203d
+# ╠═5cc04141-ccc3-4184-8273-4281117a0410
+# ╟─48be10e8-20d3-4155-bde0-31e510a81d0a
+# ╠═03168a5c-a83f-4fd6-84a8-bb7798dac9e2
+# ╠═36de6750-8754-42f3-a95b-599a79b88de7
+# ╠═865aaab5-e9fe-42b3-af78-8c9bcd137d83
+# ╠═519ff1c3-15c0-4185-b472-e33c9e591e82
+# ╠═108a464f-0c18-402b-9527-b7cc6714bc6f
+# ╠═3bfffa1a-349f-4787-8785-50940f4fb7f7
+# ╠═a51d18eb-23ad-41f1-8139-d65ae79383ba
+# ╟─b1be31d5-b5d1-42ea-a455-dc69de3d33ec
+# ╠═d3ba0d37-d6d2-4b37-b072-573998453b08
+# ╠═2f63d31a-64cf-4295-b6f5-5673557e0fb8
+# ╠═e8b97a97-2e6a-4675-9e27-48c3928c3819
+# ╠═6d55df8b-2a7a-43b6-b018-552f77eb6251
+# ╠═9e2b22d3-96f9-43b8-88ad-ee98262bd733
+# ╠═8365cdea-0806-4de0-a6a0-0d029a13d310
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
