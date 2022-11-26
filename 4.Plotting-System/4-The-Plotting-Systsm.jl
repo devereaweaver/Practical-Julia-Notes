@@ -14,6 +14,27 @@ using Plots
 # ╔═╡ 960fdf83-b3df-4311-90e1-76219b8e41ec
 using UnicodePlots
 
+# ╔═╡ 248e03a5-c486-4336-9b15-8d771b752a9c
+begin
+	plot()    # clear current plots
+
+	# compute coordinates for the labels
+	for n = 1:5
+		xlabel = (0.2 + 0.12n)  # the x-coordinate of the label
+		ylabel = xlabel^n    # corresponding y-coordinate of the label
+							 # it corresponds to exactly the function to ensure 
+							 # it labels exactly on top of the function
+		# annotation(x-coordinate, y-coordinate, n = text [converted automatically])
+		plot!(x-> x^n; lw=3, ls=:auto, annotation=(xlabel, ylabel, n),
+		annotationfontsize=25)
+	end
+
+	using LaTeXStrings
+
+	plot!(; legend=false, xguide="x", yguide="y", guidefontsize=18, 
+	title=L"x^n \textrm{~labeled~by~}n", titlefontsize=30)
+end
+
 # ╔═╡ e7c0a3c4-6cca-11ed-10a7-055b14913b88
 md"""
 # 4. The Plotting System
@@ -318,15 +339,91 @@ md"""
 ## Basic Plot Settings
 
 This section gets into adjusting the appearance of ourp plots using keyword arguments that are built into the system. 
+
+The four major components that make up a visualization with the *Plots* package are:
+* plot - the overal graphic
+* subplot - occur when more than one plot is used in the same graphic
+* axis - control the settings or the coordinate axes
+* series - the curves or oher visualizations 
+
+Much of what would be needed is in the docs for the GR backend and the Plots documenation. Consult as necessary. 
+
+## Working with Plot Settings
+
+We'll begin to use some combinations of attributes to work on other visualizations.
+
+### Aspect Ratio and Title Font Size
+"""
+
+# ╔═╡ 7c7860e1-7dd4-4e32-a28b-b859b8635dc7
+# create a plot with two subplots 
+# ratio changes the aspect ratio to adjust for Julia's non-square default
+# for graphics
+begin
+	p1 = plot(sin, cos, 0, 2π; title="A Circle", ratio=1, grid=false,
+	ticks=false, legend=false)
+
+	p2 = plot(x -> x^2, -1, 1; title="A Parabola", gridalpha=0.4, gridstyle=:dot,
+	legend=false)
+		
+	plot(p1, p2; plot_title="Two Shapes", plot_titlefontsize=20)
+end
+
+# ╔═╡ 8b6012e1-d83a-4df5-973e-2da83af09723
+md"""
+### Labels and Legend Positioning
+"""
+
+# ╔═╡ 57b73330-0184-4e17-95b6-4a72b60442d8
+begin
+	plot()    # clears existing plots which allows us to mutate the empty plots
+
+	# recall for loops don't return results unless explicitly stated
+	for n = 1:5
+		# plot x^2 on [1,5] and label each point
+		plot!(x -> x^n; lw=3, ls=:auto, label=n)
+	end
+	
+	# add a descriptive legend
+	plot!(;legend=:topleft, legendtitle="Exponent")
+end
+
+# ╔═╡ d810e512-1bd2-430f-8a53-7e160d44e992
+md"""
+### LaTeX Titles and Label Positioning by Data
+
+Using annotations to place labels on each corresponding curve.
+"""
+
+# ╔═╡ c9f6476e-6ce3-4138-9e13-a3efd3cae817
+md"""
+This will be VERY useful for the rest of my training and career, especially with the LaTeX typesetting for my equations. 
+
+## Saving Plots 
+
+Of course, our graphics can be saved to disk if we so choose. Simply call the *savefig(p,path)* function. 
+
+## Detail Insets
+
+Insets are smaller plots inside of a larger one that attempts to show details with a magnified view. These only exist in a mutating form. 
+
+These seem interesting but are a very specific use case, be sure to review these only as needed (if). 
+
+## 3D Plots
+
+Again, this is a very specific use case, so just learn it as needed. We'll move on for now. 
+
 """
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
+LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 UnicodePlots = "b8865327-cd53-5732-bb35-84acbb429228"
 
 [compat]
+LaTeXStrings = "~1.3.0"
 Plots = "~1.36.4"
 UnicodePlots = "~3.3.0"
 """
@@ -337,7 +434,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.8.3"
 manifest_format = "2.0"
-project_hash = "8f8a9fc16d9f1e8c7feebc6537ebfce188820d57"
+project_hash = "19104dfe576d0ac3a9349661eb2b9aa683f4e5fa"
 
 [[deps.ArgTools]]
 uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
@@ -1364,6 +1461,12 @@ version = "1.4.1+0"
 # ╠═e8b97a97-2e6a-4675-9e27-48c3928c3819
 # ╠═6d55df8b-2a7a-43b6-b018-552f77eb6251
 # ╠═9e2b22d3-96f9-43b8-88ad-ee98262bd733
-# ╠═8365cdea-0806-4de0-a6a0-0d029a13d310
+# ╟─8365cdea-0806-4de0-a6a0-0d029a13d310
+# ╠═7c7860e1-7dd4-4e32-a28b-b859b8635dc7
+# ╟─8b6012e1-d83a-4df5-973e-2da83af09723
+# ╠═57b73330-0184-4e17-95b6-4a72b60442d8
+# ╠═d810e512-1bd2-430f-8a53-7e160d44e992
+# ╠═248e03a5-c486-4336-9b15-8d771b752a9c
+# ╠═c9f6476e-6ce3-4138-9e13-a3efd3cae817
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
